@@ -57,7 +57,8 @@ c-------------------------------------------------------------c
       external mlwind,vrotf
       logical iplot,isave
       REAL*8 neta,bwind,hewind,mxns
-      COMMON /VALUE1/ neta,bwind,hewind,mxns
+      INTEGER windflag
+      COMMON /VALUE1/ neta,bwind,hewind,mxns,windflag
       REAL*8 pts1,pts2,pts3
       COMMON /POINTS/ pts1,pts2,pts3
       REAL scm(50000,14),spp(20,3)

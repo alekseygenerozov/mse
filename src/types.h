@@ -562,6 +562,7 @@ inline void transform_alpha_beta_to_u_u_star(double alpha[4], double beta[4], do
 struct value1__ 
 {
         double neta,bwind,hewind,mxns;
+        int windflag;
 };
 
 struct value2__ 
@@ -587,7 +588,7 @@ struct value5__
 
 struct flags__ 
 {
-        int ceflag,tflag,ifflag,nsflag,wdflag;
+        int ceflag,tflag,ifflag,nsflag,wdflag,eddlimflag;
 };
 
 struct points__ 

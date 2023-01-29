@@ -31,7 +31,8 @@
       parameter(mch=1.44d0,mlp=12.d0,tiny=1.0d-14)
       real*8 mass0,mt0,mtc
       REAL*8 neta,bwind,hewind,mxns
-      COMMON /VALUE1/ neta,bwind,hewind,mxns
+      INTEGER windflag
+      COMMON /VALUE1/ neta,bwind,hewind,mxns,windflag
 * 
       real*8 thook,thg,tbagb,tau,tloop,taul,tauh,tau1,tau2,dtau,texp
       real*8 lx,ly,dell,alpha,beta,eta
