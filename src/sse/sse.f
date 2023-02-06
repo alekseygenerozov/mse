@@ -41,6 +41,7 @@ c-------------------------------------------------------------c
       real*8 epoch,tms,tphys,tphysf,dtp
       real*8 r,lum,ospin
       real*8 mc,rc,menv,renv
+      real*8 k2
       character*50 text1,text2,text3
       character*30 label(16)
       data label /' Low Mass MS Star ',' Main sequence Star ',
@@ -113,6 +114,8 @@ c-------------------------------------------------------------c
       endif
       CLOSE(22)
       WRITE(*,*)
+
+      k2=0.15d0
 *
 * Set the initial spin of the star. If ospin is less than or equal to 
 * zero at time zero then evolv1 will set an appropriate ZAMS spin. If 
@@ -131,7 +134,7 @@ c-------------------------------------------------------------c
       dtp = 0.d0
 * 
       CALL evolv1(kw,mass,mt,r,lum,mc,rc,menv,renv,ospin,
-     &            epoch,tms,tphys,tphysf,dtp,z,zpars)
+     &            epoch,tms,tphys,tphysf,dtp,z,zpars,k2)
 *
 ************************************************************************
 * Output:
