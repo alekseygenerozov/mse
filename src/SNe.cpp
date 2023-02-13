@@ -247,7 +247,7 @@ int sample_kick_velocity(Particle *p, double *vx, double *vy, double *vz)
     last_log_info.kick_vy = *vy * vnorm / CONST_KM_PER_S;
     last_log_info.kick_vz = *vz * vnorm / CONST_KM_PER_S;
 
-#endif
+    #endif
 
     #ifdef VERBOSE
     if (verbose_flag > 0)
