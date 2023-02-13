@@ -1294,6 +1294,9 @@ class Log_info_type
     int index1,index2;
     int binary_index;
     double kick_speed_km_s = -1;
+    double kick_vx = -1;
+    double kick_vy = -1;
+    double kick_vz = -1;
     int SNe_type = -1;
     int SNe_info = -1;
     int eccentric_collision = -1;

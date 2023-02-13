@@ -243,7 +243,11 @@ int sample_kick_velocity(Particle *p, double *vx, double *vy, double *vz)
     Log_type &last_entry = logData.back();
     Log_info_type &last_log_info = last_entry.log_info;
     last_log_info.kick_speed_km_s = vnorm / CONST_KM_PER_S;
-    #endif
+    last_log_info.kick_vx = *vx * vnorm / CONST_KM_PER_S;
+    last_log_info.kick_vy = *vy * vnorm / CONST_KM_PER_S;
+    last_log_info.kick_vz = *vz * vnorm / CONST_KM_PER_S;
+
+#endif
 
     #ifdef VERBOSE
     if (verbose_flag > 0)
