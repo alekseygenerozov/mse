@@ -1297,6 +1297,7 @@ class Log_info_type
     double kick_vx = -1;
     double kick_vy = -1;
     double kick_vz = -1;
+    double anomaly = -1;
     int SNe_type = -1;
     int SNe_info = -1;
     int eccentric_collision = -1;

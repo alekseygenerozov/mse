@@ -2,6 +2,7 @@
 
 #include "evolve.h"
 #include "SNe.h"
+#include <iostream>
 
 extern "C"
 {
@@ -9,12 +10,41 @@ extern "C"
 int handle_SNe_in_system(ParticlesMap *particlesMap, bool *unbound_orbits, int *integration_flag)
 {
     int flag;
+    // int parent_idx;
     double VX,VY,VZ;
     ParticlesMapIterator it_p;
-    
+    // double MA = 0;
+    bool test1 = 0; 
+    bool test2 = 0;
+
+
     for (it_p = particlesMap->begin(); it_p != particlesMap->end(); it_p++)
     {
         Particle *p = (*it_p).second;
+        if (p->is_binary == true)
+        {
+            // std::cout<<"Child 1"<<p->child1<<std::endl;
+            // std::cout<<"Child 2"<<p->child2<<std::endl;
+            test1 = (*particlesMap)[p->child1]->apply_kick;
+            test2 = (*particlesMap)[p->child2]->apply_kick;
+            test1 = test1 || test2;
+            // std::cout<<"test:"<<test1<<std::endl;
+            if (test1)
+            {
+                // std::cout<<"True anomaly"<<p->true_anomaly  << std::endl;
+#ifdef LOGGING
+                Log_type &last_entry = logData.back();
+                Log_info_type &last_log_info = last_entry.log_info;
+                last_log_info.anomaly = compute_mean_anomaly_from_true_anomaly(p->true_anomaly, p->e);
+#endif
+            }
+        }
+    }
+
+    for (it_p = particlesMap->begin(); it_p != particlesMap->end(); it_p++)
+    {
+        Particle *p = (*it_p).second;
+
         if (p->is_binary == false and p->object_type == 1)
         {
 
@@ -24,6 +54,7 @@ int handle_SNe_in_system(ParticlesMap *particlesMap, bool *unbound_orbits, int *
             if (p->apply_kick == true)
             {
                 flag = sample_kick_velocity(p,&VX,&VY,&VZ);
+                
             }
 
             #ifdef VERBOSE
@@ -44,6 +75,7 @@ int handle_SNe_in_system(ParticlesMap *particlesMap, bool *unbound_orbits, int *
             
         }
     }
+
     if (*integration_flag == 0) /* secular case */
     {
         apply_user_specified_instantaneous_perturbation(particlesMap);
@@ -52,7 +84,8 @@ int handle_SNe_in_system(ParticlesMap *particlesMap, bool *unbound_orbits, int *
     {
         apply_user_specified_instantaneous_perturbation_nbody(particlesMap);
     }
-    
+        
+
     if (*integration_flag == 0)
     {
         *unbound_orbits = check_for_unbound_orbits(particlesMap);

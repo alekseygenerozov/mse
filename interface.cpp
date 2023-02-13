@@ -1262,7 +1262,8 @@ int get_size_of_log_data()
 }
  
 int get_log_entry_properties(int log_index, double *time, int *event_flag, int *integration_flag, int *N_particles, int *index1,
- int *index2, int *binary_index, double *kick_speed_km_s, int *SNe_type, int *SNe_info, int *eccentric_collision, double *eccentricity, double* kick_vx, double* kick_vy, double* kick_vz)
+ int *index2, int *binary_index, double *kick_speed_km_s, int *SNe_type, int *SNe_info, int *eccentric_collision, double *eccentricity,
+double* kick_vx, double* kick_vy, double* kick_vz, double* mean_anomaly)
 {
     Log_type entry = logData[log_index];
     *time = entry.time;
@@ -1281,6 +1282,7 @@ int get_log_entry_properties(int log_index, double *time, int *event_flag, int *
     *kick_vx = log_info.kick_vx;
     *kick_vy = log_info.kick_vy;
     *kick_vz = log_info.kick_vz;
+    *mean_anomaly = log_info.anomaly;
     
     *SNe_type = log_info.SNe_type;
     *SNe_info = log_info.SNe_info;

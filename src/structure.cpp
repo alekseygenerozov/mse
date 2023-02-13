@@ -3,6 +3,7 @@
 #include "structure.h"
 #include "evolve.h"
 #include <stdio.h>
+#include <iostream>
 
 extern "C"
 {
@@ -332,6 +333,7 @@ void set_positions_and_velocities(ParticlesMap *particlesMap) /* TO DO: add to n
                 if (parent->sample_orbital_phase_randomly == false)
                 {
                     true_anomaly = parent->true_anomaly;
+                    // std::cout<<"True anomaly"<<parent->true_anomaly<<std::endl;
                 }
                 else
                 {
@@ -374,6 +376,7 @@ void set_positions_and_velocities(ParticlesMap *particlesMap) /* TO DO: add to n
                 set_position_and_velocity_vectors_in_particle(child1,r_child1,v_child1);
                 set_position_and_velocity_vectors_in_particle(child2,r_child2,v_child2);
                 parent->true_anomaly = true_anomaly;
+                // std::cout<<"True anomaly: " <<true_anomaly<<std::endl;
             }
         }
         level++;

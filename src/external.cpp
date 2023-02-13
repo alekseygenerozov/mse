@@ -5,6 +5,7 @@
 #include "evolve.h"
 #include "structure.h" /* for determine_binary_parents_and_levels */
 #include <stdio.h>
+#include <iostream>
 
 extern "C"
 {
