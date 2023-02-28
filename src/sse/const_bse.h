@@ -16,6 +16,8 @@
       REAL*8 neta,bwind,hewind,mxns,alpha1,lambda
       INTEGER windflag
       REAL*8 sigma,beta,xi,acc2,epsnov,eddfac,gamma
+      REAL*8 ecsn,ecsn_mlow
+      COMMON /SNVARS/ ecsn,ecsn_mlow
       COMMON /VALUE1/ neta,bwind,hewind,mxns,windflag
       COMMON /VALUE2/ alpha1,lambda
       COMMON /VALUE4/ sigma,bhflag

@@ -30,10 +30,15 @@
       real*8 mch,mlp,tiny
       parameter(mch=1.44d0,mlp=12.d0,tiny=1.0d-14)
       real*8 mass0,mt0,mtc
+      REAL*8 fallback
       REAL*8 neta,bwind,hewind,mxns
       INTEGER windflag
+      REAL*8 ecsn,ecsn_mlow
+      COMMON /SNVARS/ ecsn, ecsn_mlow
       COMMON /VALUE1/ neta,bwind,hewind,mxns,windflag
+
 * 
+      real*8 avar,bvar
       real*8 thook,thg,tbagb,tau,tloop,taul,tauh,tau1,tau2,dtau,texp
       real*8 lx,ly,dell,alpha,beta,eta
       real*8 rx,ry,delr,rzams,rtms,gamma,rmin,taumin,rg
@@ -476,7 +481,7 @@
                else
                   if(nsflag.eq.0)then
                      mt = 1.17d0 + 0.09d0*mc
-                  elseif(nsflag.ge.1)then
+                  elseif(nsflag.eq.1)then
 *
 * Use NS/BH mass given by Belczynski et al. 2002, ApJ, 572, 407. 
 *
@@ -490,8 +495,136 @@
                      elseif(mc.lt.7.6d0)then
                         mt = mcx + (mc - 5.d0)*(mt - mcx)/2.6d0
                      endif
+                  elseif(nsflag.eq.2)then
+*
+* Use NS/BH masses given by Belczynski+08. PK.
+*
+                     !First calculate the proto-core mass
+                     if(ecsn.gt.0.d0.and.mcbagb.le.ecsn.and.
+     &                    mcbagb.ge.ecsn_mlow)then
+                        mcx = 1.38d0
+*                     elseif(mc.lt.4.29d0)then
+                     elseif(mc.lt.4.82d0)then
+                        mcx = 1.5d0
+*                     elseif(mc.ge.4.29d0.and.mc.lt.6.31d0)then
+                     elseif(mc.ge.4.82d0.and.mc.lt.6.31d0)then
+                        mcx = 2.11d0
+                     elseif(mc.ge.6.31d0.and.mc.lt.6.75d0)then
+                        mcx = 0.69*mc - 2.26d0
+                     elseif(mc.ge.6.75d0)then
+                        mcx = 0.37*mc - 0.07d0
+                     endif
+                     !now calculate the remnant mass after fallback
+                     if(mc.le.5.d0)then
+                        mt = mcx
+                        fallback = 0.d0
+                     elseif(mc.lt.7.6d0)then
+                        mt = mcx + (0.378d0*mc - 1.889d0)*(mt - mcx)
+                        fallback = (0.378d0*mc - 1.889d0)
+                     elseif(mc.gt.7.60)then
+                        fallback = 1.d0
+                     endif
+                     ! if(bhspinflag.eq.0)then
+                     !        bhspin = bhspinmag
+                     ! elseif(bhspinflag.eq.1)then
+                     !        bhspin = ran3(idum1) * bhspinmag
+                     ! elseif(bhspinflag.eq.2)then
+                     !     if(mc.le.13.d0)then
+                     !         bhspin = 0.9d0
+                     !     elseif(mc.lt.27.d0)then
+                     !         bhspin = -0.064d0*mc + 1.736d0
+                     !     else
+                     !         bhspin = 0.0d0
+                     !     endif
+                     ! endif
+                     mc = mt
+                  elseif(nsflag.eq.3)then
+*
+* Use the "Rapid" SN Prescription (Fryer et al. 2012, APJ, 749,91)
+*
+*                    We use the updated proto-core mass from Giacobbo & Mapelli 2020
+                     mcx = 1.1d0
+                     if(ecsn.gt.0.d0.and.mcbagb.le.ecsn.and.
+     &                    mcbagb.ge.ecsn_mlow)then
+                        mt = 1.38d0   ! ECSN fixed mass, no fallback
+                     elseif(mc.le.2.5d0)then
+                        fallback = 0.2d0 / (mt - mcx) 
+                        mt = mcx + 0.2d0
+                     elseif(mc.le.6.d0)then
+                        fallback = (0.286d0*mc - 0.514d0) / (mt - mcx)
+                        mt = mcx + 0.286d0*mc - 0.514d0
+                     elseif(mc.le.7.d0)then
+                        fallback = 1.d0
+                     elseif(mc.le.11.d0)then
+                        avar = 0.25d0 - (1.275 / (mt - mcx))
+                        bvar = 1.d0 - 11.d0*avar
+                        fallback = avar*mc + bvar
+                        mt = mcx + fallback*(mt - mcx)
+                     elseif(mc.gt.11.d0)then
+                        fallback = 1.d0
+                     endif
+                     ! if(bhspinflag.eq.0)then
+                     !        bhspin = bhspinmag
+                     ! elseif(bhspinflag.eq.1)then
+                     !        bhspin = ran3(idum1) * bhspinmag
+                     ! elseif(bhspinflag.eq.2)then
+                     !     if(mc.le.13.d0)then
+                     !         bhspin = 0.9d0
+                     !     elseif(mc.lt.27.d0)then
+                     !         bhspin = -0.064d0*mc + 1.736d0
+                     !     else
+                     !         bhspin = 0.0d0
+                     !     endif
+                     ! endif
+                     mc = mt
+                  elseif(nsflag.eq.4)then
+*
+* Use the "Delayed" SN Prescription (Fryer et al. 2012, APJ, 749,91)
+*
+*                    For this, we just set the proto-core mass to one
+                     if(mc.le.3.5d0)then
+                        mcx = 1.2d0
+                     elseif(mc.le.6.d0)then
+                        mcx = 1.3d0
+                     elseif(mc.le.11.d0)then
+                        mcx = 1.4d0
+                     elseif(mc.gt.11.d0)then
+                        mcx = 1.6d0
+                     endif
+
+                     if(ecsn.gt.0.d0.and.mcbagb.le.ecsn.and.
+     &                    mcbagb.ge.ecsn_mlow)then
+                        mt = 1.38d0   ! ECSN fixed mass, no fallback
+                     elseif(mc.lt.2.5d0)then
+                        fallback = 0.2d0 / (mt - mcx) 
+                        mt = mcx + 0.2
+                     elseif(mc.lt.3.5d0)then
+                        fallback = (0.5d0 * mc - 1.05d0) / (mt - mcx)
+                        mt = mcx + 0.5d0 * mc - 1.05d0
+                     elseif(mc.lt.11.d0)then
+                        avar = 0.133d0 - (0.093d0 / (mt - mcx))
+                        bvar = 1.d0 - 11.d0*avar
+                        fallback = avar*mc + bvar
+                        mt = mcx + fallback*(mt - mcx)
+                     elseif(mc.ge.11.d0)then
+                        fallback = 1.d0
+                     endif
+                     ! if(bhspinflag.eq.0)then
+                     !        bhspin = bhspinmag
+                     ! elseif(bhspinflag.eq.1)then
+                     !        bhspin = ran3(idum1) * bhspinmag
+                     ! elseif(bhspinflag.eq.2)then
+                     !     if(mc.le.13.d0)then
+                     !         bhspin = 0.9d0
+                     !     elseif(mc.lt.27.d0)then
+                     !         bhspin = -0.064d0*mc + 1.736d0
+                     !     else
+                     !         bhspin = 0.0d0
+                     !     endif
+                     ! endif
                   endif
-                  mc = mt
+                  ! mc = mt
+                  
                   if(mt.le.mxns)then
 *
 * Zero-age Neutron star

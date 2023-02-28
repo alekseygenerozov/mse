@@ -6,6 +6,7 @@
 extern "C"
 {
 
+struct snvars__ snavars_;
 struct value1__ value1_;
 struct value2__ value2_;
 struct value3__ value3_;
@@ -28,6 +29,8 @@ void check_sse_error_codes()
 int initialize_stars(ParticlesMap *particlesMap)
 {
 
+    snvars_.ecsn = 2.25;
+    snvars_.ecsn_mlow = 1.6; 
     value1_.neta = 0.5;
     value1_.bwind = 0.0;
     value1_.hewind = 0.5;
@@ -265,6 +268,9 @@ int evolve_stars(ParticlesMap *particlesMap, double start_time, double end_time,
     /* Go through all stars in the system and evolve them with SSE */
         
     /* SSE global parameters that need to be set */
+
+    snvars_.ecsn = 2.25;
+    snvars_.ecsn_mlow = 1.6;
     value1_.neta = 0.5;
     value1_.bwind = 0.0;
     value1_.hewind = 0.5;
