@@ -7,3 +7,11 @@ C++ and Fortran compilers are required, as well as Python (2/3) for the Python i
 The script `test_mse.py` can be used to test the installation. The script `run_system.py` is useful for quickly running a system. 
 
 **See the user guide (doc/doc.pdf) for more detailed information.**
+
+#Updates to stellar evolution routines src/sse/evolv1.f
+
+1. mlwind.f has been replaced with the Cosmic version.
+2. hrdiag.f has been replaced with the Cosmic version, with some minor adjustments: (i) remnantflag is replaced with nsflag (ii) code related to bh spin and pisn tracking is commented out
+3. evolv1.f: tweaks to check with radial conversion.
+
+
