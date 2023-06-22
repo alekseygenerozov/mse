@@ -6,7 +6,7 @@
 extern "C"
 {
 
-struct snvars__ snavars_;
+struct snvars__ snvars_;
 struct value1__ value1_;
 struct value2__ value2_;
 struct value3__ value3_;
@@ -30,7 +30,9 @@ int initialize_stars(ParticlesMap *particlesMap)
 {
 
     snvars_.ecsn = 2.25;
-    snvars_.ecsn_mlow = 1.6; 
+    snvars_.ecsn_mlow = 1.6;
+    snvars_.pisn = 45; 
+    snvars_.rembar_massloss = 0.5;
     value1_.neta = 0.5;
     value1_.bwind = 0.0;
     value1_.hewind = 0.5;
@@ -50,9 +52,10 @@ int initialize_stars(ParticlesMap *particlesMap)
     flags_.ceflag = binary_evolution_CE_energy_flag;
     flags_.tflag = 0;
     flags_.ifflag = 0;
-    flags_.nsflag = 1;
+    flags_.nsflag = 4;
     flags_.wdflag = 1;
     flags_.eddlimflag = 0;
+    flags_.ST_tide = 1;
     points_.pts1 = 0.05;
     points_.pts2 = 0.01;
     points_.pts3 = 0.02;
@@ -289,7 +292,7 @@ int evolve_stars(ParticlesMap *particlesMap, double start_time, double end_time,
     flags_.ceflag = binary_evolution_CE_energy_flag;
     flags_.tflag = 0;
     flags_.ifflag = 0;
-    flags_.nsflag = 1;
+    flags_.nsflag = 4;
     flags_.wdflag = 1;
     points_.pts1 = 0.05;
     points_.pts2 = 0.01;

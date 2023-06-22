@@ -65,6 +65,7 @@ FHEADERS = src/sse/const_bse.h src/sse/zdata.h
 
 ### Default flags with optimisation and no debugging support
 CPPFLAGS = -fPIC -shared -O2 -lgfortran -Wno-comment -Wno-c++11-compat-deprecated-writable-strings -Wno-write-strings
+#CPPFLAGS = -fPIC -shared -g -lgfortran -Wno-comment 
 
 ### Optional flags without optimisation and debugging support (significantly slower)
 # CPPFLAGS = -fPIC -shared -lgfortran -Wno-comment -Wno-c++11-compat-deprecated-writable-strings -Wno-write-strings -g

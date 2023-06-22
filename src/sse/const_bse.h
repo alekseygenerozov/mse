@@ -7,8 +7,15 @@
       COMMON /RAND3/ idum2,iy,ir
       INTEGER ktype(0:14,0:14)
       COMMON /TYPES/ ktype
-      INTEGER ceflag,tflag,ifflag,nsflag,wdflag,eddlimflag
-      COMMON /FLAGS/ ceflag,tflag,ifflag,nsflag,wdflag,eddlimflag
+
+      REAL*8 Mbh_initial
+      COMMON /MTVARS/ Mbh_initial
+      INTEGER ceflag,tflag,ifflag,nsflag,wdflag,eddlimflag,ST_tide
+      COMMON /FLAGS/ ceflag,tflag,ifflag,nsflag,wdflag,eddlimflag,
+     &               ST_tide
+      INTEGER pisn_track(2)
+      COMMON /TRACKERS/ pisn_track
+
       INTEGER bhflag
       INTEGER sse_error_code
       COMMON /SSE_ERROR_OUTPUT/ sse_error_code
@@ -16,8 +23,8 @@
       REAL*8 neta,bwind,hewind,mxns,alpha1,lambda
       INTEGER windflag
       REAL*8 sigma,beta,xi,acc2,epsnov,eddfac,gamma
-      REAL*8 ecsn,ecsn_mlow
-      COMMON /SNVARS/ ecsn,ecsn_mlow
+      REAL*8 ecsn,ecsn_mlow,pisn,rembar_massloss
+      COMMON /SNVARS/ ecsn,ecsn_mlow,rembar_massloss,pisn
       COMMON /VALUE1/ neta,bwind,hewind,mxns,windflag
       COMMON /VALUE2/ alpha1,lambda
       COMMON /VALUE4/ sigma,bhflag

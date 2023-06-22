@@ -1,6 +1,8 @@
 ***
       SUBROUTINE hrdiag(mass,aj,mt,tm,tn,tscls,lums,GB,zpars,
      &                  r,lum,kw,mc,rc,menv,renv,k2)
+      IMPLICIT NONE
+      INCLUDE 'const_bse.h'
 *
 *
 *       H-R diagram for population I stars.
@@ -19,31 +21,30 @@
 *       to include Z=0.001 as well as Z=0.02, convective overshooting,
 *       MS hook and more elaborate CHeB
 *
-      implicit none
 *
-      integer kw,kwp
-      INTEGER ceflag,tflag,ifflag,nsflag,wdflag
-      COMMON /FLAGS/ ceflag,tflag,ifflag,nsflag,wdflag
+      integer kw,kwp,kidx
 *
       real*8 mass,aj,mt,tm,tn,tscls(20),lums(10),GB(10),zpars(20)
+      real*8 bhspin
       real*8 r,lum,mc,rc,menv,renv,k2
       real*8 mch,mlp,tiny
-      parameter(mch=1.44d0,mlp=12.d0,tiny=1.0d-14)
+*      parameter(mch=1.44d0,mlp=12.d0,tiny=1.0d-14)
+      parameter(mlp=12.d0,tiny=1.0d-14)
       real*8 mass0,mt0,mtc
+      common /fall/fallback
       REAL*8 fallback
-      REAL*8 neta,bwind,hewind,mxns
-      INTEGER windflag
-      REAL*8 ecsn,ecsn_mlow
-      COMMON /SNVARS/ ecsn, ecsn_mlow
-      COMMON /VALUE1/ neta,bwind,hewind,mxns,windflag
-
-* 
+      REAL ran3
+      EXTERNAL ran3
+*
+      real*8 mchold
+*
       real*8 avar,bvar
       real*8 thook,thg,tbagb,tau,tloop,taul,tauh,tau1,tau2,dtau,texp
-      real*8 lx,ly,dell,alpha,beta,eta
-      real*8 rx,ry,delr,rzams,rtms,gamma,rmin,taumin,rg
+      real*8 lx,ly,dell,alpha,betahrdiag,eta
+      real*8 rx,ry,delr,rzams,rtms,gammahrdiag,rmin,taumin,rg
       parameter(taumin=5.0d-08)
-      real*8 mcmax,mcx,mcy,mcbagb,lambda
+      real*8 mcmax,mcx,mcy,mcbagb,lambdahrdiag
+      real*8 frac,kappa,sappa,alphap,polyfit
       real*8 am,xx,fac,rdgen,mew,lum0,kap,zeta,ahe,aco
       parameter(lum0=7.0d+04,kap=-0.5d0,ahe=4.d0,aco=16.d0)
 *
@@ -52,6 +53,7 @@
       real*8 rzamsf,rtmsf,ralphf,rbetaf,rgammf,rhookf
       real*8 rgbf,rminf,ragbf,rzahbf,rzhef,rhehgf,rhegbf,rpertf
       real*8 mctmsf,mcgbtf,mcgbf,mcheif,mcagbf,lzahbf
+      real*8 mrem
       external thookf,tblf
       external lalphf,lbetaf,lnetaf,lhookf,lgbtf,lmcgbf,lzhef,lpertf
       external rzamsf,rtmsf,ralphf,rbetaf,rgammf,rhookf
@@ -78,10 +80,13 @@
 *
 * Make evolutionary changes to stars that have not reached KW > 5.
 *
+      Mbh_initial = 0.
+      mch = 1.44d0 !set here owing to AIC ECSN model.
+*
       mass0 = mass
-      if(mass0.gt.100.d0) mass = 100.d0
+C      if(mass0.gt.100.d0) mass = 100.d0
       mt0 = mt
-      if(mt0.gt.100.d0) mt = 100.d0
+C      if(mt0.gt.100.d0) mt = 100.d0
 *
       if(kw.gt.6) goto 90
 *
@@ -112,12 +117,12 @@
             dell = lhookf(mass,zpars(1))
             dtau = tau1**2 - tau2**2
             alpha = lalphf(mass)
-            beta = lbetaf(mass)
+            betahrdiag = lbetaf(mass)
             eta = lnetaf(mass)
             lx = LOG10(lums(2)/lums(1))
             if(tau.gt.taumin)then
-               xx = alpha*tau + beta*tau**eta +
-     &              (lx - alpha - beta)*tau**2 - dell*dtau
+               xx = alpha*tau + betahrdiag*tau**eta +
+     &              (lx - alpha - betahrdiag)*tau**2 - dell*dtau
             else
                xx = alpha*tau + (lx - alpha)*tau**2 - dell*dtau
             endif
@@ -126,14 +131,15 @@
             delr = rhookf(mass,zpars(1))
             dtau = tau1**3 - tau2**3
             alpha = ralphf(mass)
-            beta = rbetaf(mass)
-            gamma = rgammf(mass)
+            betahrdiag = rbetaf(mass)
+            gammahrdiag = rgammf(mass)
             rx = LOG10(rtms/rzams)
 * Note that the use of taumin is a slightly pedantic attempt to
 * avoid floating point underflow. It IS overkill!
             if(tau.gt.taumin)then
-               xx = alpha*tau + beta*tau**10 + gamma*tau**40 +
-     &              (rx - alpha - beta - gamma)*tau**3 - delr*dtau
+               xx = alpha*tau + betahrdiag*tau**10 +
+     &              gammahrdiag*tau**40 + (rx - alpha - betahrdiag -
+     &              gammahrdiag)*tau**3 - delr*dtau
             else
                xx = alpha*tau + (rx - alpha)*tau**3 - delr*dtau
             endif
@@ -141,8 +147,8 @@
 *
             if(mass.lt.(zpars(1)-0.3d0))then
                kw = 0
-* This following is given by Chris for low mass MS stars which will be 
-* substantially degenerate. We need the Hydrogen abundance, X, which we 
+* This following is given by Chris for low mass MS stars which will be
+* substantially degenerate. We need the Hydrogen abundance, X, which we
 * calculate from Z assuming that the helium abundance, Y, is calculated
 * according to Y = 0.24 + 2*Z
                rdgen = 0.0258d0*((1.d0+zpars(11))**(5.d0/3.d0))*
@@ -151,8 +157,12 @@
             else
                kw = 1
             endif
+* planets
+            if(mass.lt.0.005d0.and.mass.ge.tiny)then
+               r = 0.16d0
+            endif
 *
-         else 
+         else
 *
 *           Star is on the HG
 *
@@ -306,7 +316,7 @@
                rx = rmin*(rx/rmin)**texp
             else
                rx = rmin
-            end if
+            endif
             texp = MIN(MAX(0.4d0,rmin/rx),2.5d0)
             lum = lums(4)*(lums(7)/lums(4))**(tau**texp)
             if(aj.lt.tloop)then
@@ -325,7 +335,7 @@
             else
                r = ragbf(mt,lum,zpars(2))
                rg = r
-            end if
+            endif
          else
 *
 * For IM stars CHeB consists of a RG phase (before tloop) and a blue
@@ -359,7 +369,7 @@
                lum = lx*(ly/lx)**(tau**texp)
             endif
          endif
-* 
+*
 * Test whether core mass exceeds total mass.
 *
          if(mc.ge.mt)then
@@ -420,13 +430,13 @@
 *
 * Approximate 3rd Dredge-up on AGB by limiting Mc.
 *
-            lambda = MIN(0.9d0,0.3d0+0.001d0*mass**5)
+            lambdahrdiag = MIN(0.9d0,0.3d0+0.001d0*mass**5)
             tau = tscls(13)
             mcx = mcgbtf(tau,GB(2),GB,tscls(10),tscls(11),tscls(12))
             mcy = mc
-            mc = mc - lambda*(mcy-mcx)
+            mc = mc - lambdahrdiag*(mcy-mcx)
             mcx = mc
-            mcmax = MIN(mt,mcmax)   
+            mcmax = MIN(mt,mcmax)
          endif
          r = ragbf(mt,lum,zpars(2))
          rg = r
@@ -440,7 +450,7 @@
             if(mc.lt.mch)then
                if(ifflag.ge.1)then
 *
-* Invoke WD IFMR from HPE, 1995, MNRAS, 272, 800. 
+* Invoke WD IFMR from HPE, 1995, MNRAS, 272, 800.
 *
                   if(zpars(14).ge.1.0d-08)then
                      mc = MIN(0.36d0+0.104d0*mass,0.58d0+0.061d0*mass)
@@ -454,13 +464,22 @@
                endif
 *
                mt = mc
-               if(mcbagb.lt.1.6d0)then
-*     
+               if(ecsn.gt.0.d0.and.mcbagb.lt.ecsn_mlow)then
+                  kw = 11
+               elseif(ecsn.eq.0.d0.and.mcbagb.lt.1.6d0)then !double check what this should be. should be ecsn_mlow. Remember need to add option if ecsn = 0 (i.e. no ECSN!!!)
+*
 * Zero-age Carbon/Oxygen White Dwarf
 *
                   kw = 11
+               elseif(ecsn.gt.0.d0.and.mcbagb.ge.ecsn_mlow.and.
+     &                mcbagb.le.ecsn.and.mc.lt.1.08d0)then
+                  kw = 11
+*               elseif(mcbagb.ge.1.6d0.and.mcbagb.le.2.5d0.and.
+*                      mc.lt.1.08d0)then !can introduce this into code at some point.
+*                  kw = 11
+
                else
-*     
+*
 * Zero-age Oxygen/Neon White Dwarf
 *
                   kw = 12
@@ -468,7 +487,17 @@
                mass = mt
 *
             else
-               if(mcbagb.lt.1.6d0)then
+               if(ecsn.gt.0.d0.and.mcbagb.lt.ecsn_mlow)then
+*
+* Star is not massive enough to ignite C burning.
+* so no remnant is left after the SN
+*
+                  kw = 15
+                  aj = 0.d0
+                  mt = 0.d0
+                  lum = 1.0d-10
+                  r = 1.0d-10
+               elseif(ecsn.eq.0.d0.and.mcbagb.lt.1.6d0)then
 *
 * Star is not massive enough to ignite C burning.
 * so no remnant is left after the SN
@@ -483,7 +512,7 @@
                      mt = 1.17d0 + 0.09d0*mc
                   elseif(nsflag.eq.1)then
 *
-* Use NS/BH mass given by Belczynski et al. 2002, ApJ, 572, 407. 
+* Use NS/BH mass given by Belczynski et al. 2002, ApJ, 572, 407.
 *
                      if(mc.lt.2.5d0)then
                         mcx = 0.161767d0*mc + 1.067055d0
@@ -492,8 +521,12 @@
                      endif
                      if(mc.le.5.d0)then
                         mt = mcx
+                        fallback = 0.d0
                      elseif(mc.lt.7.6d0)then
                         mt = mcx + (mc - 5.d0)*(mt - mcx)/2.6d0
+                        fallback = (mc - 5.d0)/2.6d0
+                     elseif(mc.gt.7.60)then
+                        fallback = 1.d0
                      endif
                   elseif(nsflag.eq.2)then
 *
@@ -622,20 +655,156 @@
                      !         bhspin = 0.0d0
                      !     endif
                      ! endif
+                     mc = mt
                   endif
-                  ! mc = mt
-                  
-                  if(mt.le.mxns)then
-*
-* Zero-age Neutron star
-*
+
+* Specify the baryonic to gravitational remnant mass prescription
+* MJZ 04/2020
+
+* Determine gravitational mass using Lattimer & Yahil 1989 for nsflag>1
+                  if(nsflag.le.1)then
+                     mrem = mt
+                  else
+                     mrem = 6.6666667d0*(SQRT(1.d0+0.3d0*mt)-1.d0)
+* If rembar_massloss >= 0, limit the massloss by rembar_massloss
+                     if(rembar_massloss.ge.0d0)then
+                        if((mt-mrem).ge.rembar_massloss) 
+     &                               mrem = mt-rembar_massloss
+                     endif
+                  endif
+
+* Determine whether a zero-age NS or BH is formed
+                  if(mrem.le.mxns)then
+                     mt = mrem
                      kw = 13
                   else
-*
-* Zero-age Black hole
-*
                      kw = 14
-                  endif  
+
+* CLR - (Pulsational) Pair-Instability Supernova
+
+* Belczynski+2016 prescription: just shrink any BH with a He core mass
+* between 45 and 65 solar masses (provided the pisn flag is set at 45),
+* and blow up anything between 65 and 135 solar masses.  
+* Cheap, but effective
+                     if(pisn.gt.0)then
+                        if(mcbagb.ge.pisn.and.mcbagb.lt.65.d0)then
+                           mt = pisn
+                           mc = pisn
+                           !pisn_track(kidx)=6
+                        elseif(mcbagb.ge.65.d0.and.mcbagb.lt.135.d0)then
+                           mt = 0.d0
+                           mc = 0.d0
+                           kw = 15
+                           !pisn_track(kidx)=7
+                        endif
+* The Spera+Mapelli2017 prescription is a tad more sophisticated:
+* complex fitting formula to Stan Woosley's PSN models.  HOWEVER, these
+* were done using the ZAMS mass/core mass/remnant mass relationships for
+* SEVN, not BSE.  In other words, I woud be careful using this (and in
+* practice, it doesn't vary that much from Belczynski's prescription,
+* since the He core masses are the same in both)
+                     elseif(pisn.eq.-1)then
+                        frac = mcbagb/mt
+                        kappa = 0.67d0*frac + 0.1d0
+                        sappa = 0.5226d0*frac - 0.52974d0
+                        if(mcbagb.le.32.d0)then
+                           alphap = 1.0d0
+                        elseif(frac.lt.0.9d0.and.mcbagb.le.37.d0)then
+                           alphap = 0.2d0*(kappa-1.d0)*mcbagb +
+     &                              0.2d0*(37.d0 - 32.d0*kappa)
+                           !pisn_track(kidx)=6
+                        elseif(frac.lt.0.9d0.and.mcbagb.le.60.d0)then
+                           alphap = kappa
+                           !pisn_track(kidx)=6
+                        elseif(frac.lt.0.9d0.and.mcbagb.lt.64.d0)then
+                           alphap = kappa*(-0.25d0)*mcbagb + kappa*16.d0
+                           !pisn_track(kidx)=6
+                        elseif(frac.ge.0.9d0.and.mcbagb.le.37.d0)then
+                           alphap = sappa*(mcbagb - 32.d0) + 1.d0
+                           !pisn_track(kidx)=6
+                        elseif(frac.ge.0.9d0.and.mcbagb.le.56.d0.and.
+     &                         sappa.lt.-0.034168d0)then
+                           alphap = 5.d0*sappa + 1.d0
+                           !pisn_track(kidx)=6
+                        elseif(frac.ge.0.9d0.and.mcbagb.le.56.d0.and.
+     &                         sappa.ge.-0.034168d0)then
+                           alphap = (-0.1381d0*frac + 0.1309d0)*
+     &                              (mcbagb - 56.d0) + 0.82916d0
+                           !pisn_track(kidx)=6
+                        elseif(frac.ge.0.9d0.and.mcbagb.lt.64.d0)then
+                           alphap = -0.103645d0*mcbagb + 6.63328d0
+                           !pisn_track(kidx)=6
+                        elseif(mcbagb.ge.64.d0.and.mcbagb.lt.135.d0)then
+                           alphap = 0.d0
+                           kw = 15
+                           !pisn_track(kidx)=7
+                        elseif(mcbagb.ge.135.d0)then
+                           alphap = 1.0d0
+                        endif
+                        mt = alphap*mt
+
+* Fit (8th order polynomial) to Table 1 in Marchant+2018.
+                     elseif(pisn.eq.-2)then
+                        if(mcbagb.ge.31.99d0.and.mcbagb.le.61.10d0)then
+                           polyfit = -6.29429263d5
+     &                            + 1.15957797d5*mcbagb
+     &                            - 9.28332577d3*mcbagb**2d0
+     &                            + 4.21856189d2*mcbagb**3d0
+     &                            - 1.19019565d1*mcbagb**4d0
+     &                            + 2.13499267d-1*mcbagb**5d0
+     &                            - 2.37814255d-3*mcbagb**6d0
+     &                            + 1.50408118d-5*mcbagb**7d0
+     &                            - 4.13587235d-8*mcbagb**8d0
+                           mt = polyfit
+                           !pisn_track(kidx)=6
+                        elseif(mcbagb.gt.61.10d0.and.
+     &                         mcbagb.lt.124.12d0)then
+                           mt = 0.d0
+                           kw = 15
+                           !pisn_track(kidx)=7
+                        endif
+
+* Fit (8th order polynomial) to Table 5 in Woosley2019.
+                     elseif(pisn.eq.-3)then
+                        if(mcbagb.ge.29.53d0.and.mcbagb.le.60.12d0)then
+                           polyfit = -3.14610870d5
+     &                            + 6.13699616d4*mcbagb
+     &                            - 5.19249710d3*mcbagb**2d0
+     &                            + 2.48914888d2*mcbagb**3d0
+     &                            - 7.39487537d0*mcbagb**4d0
+     &                            + 1.39439936d-1*mcbagb**5d0
+     &                            - 1.63012111d-3*mcbagb**6d0
+     &                            + 1.08052344d-5*mcbagb**7d0
+     &                            - 3.11019088d-8*mcbagb**8d0
+                           mt = polyfit
+                           ! !pisn_track(kidx)=6
+                        elseif(mcbagb.gt.60.12d0.and.
+     &                         mcbagb.lt.135.d0)then
+                           mt = 0.d0
+                           kw = 15
+                           ! !pisn_track(kidx)=7
+                        endif
+                     endif
+
+* Convert baryonic mass to gravitational mass 
+* MJZ 04/2020
+                     if(nsflag.le.1)then
+                        mrem = mt
+                     else
+* If rembar_massloss >= 0, limit the massloss by rembar_massloss
+                        if(rembar_massloss.ge.0d0)then
+                           mrem = mt-rembar_massloss
+* If -1 < rembar_massloss < 0, assume this fractional mass loss
+                        else
+                           mrem = (1.d0+rembar_massloss)*mt
+                        endif
+                     endif
+                     mt = mrem
+* Store the initial BH mass for calculating the ISCO later
+                     if(Mbh_initial.eq.0)then
+                        Mbh_initial = mt
+                     endif
+                  endif
                endif
             endif
          endif
@@ -685,14 +854,21 @@
                aj = 0.d0
                mc = mcmax
                if(mc.lt.mch)then
-                  if(mass.lt.1.6d0)then
-*     
+                  if(ecsn.gt.0.d0.and.mass.lt.ecsn_mlow)then
+                     mt = MAX(mc,(mc+0.31d0)/1.45d0)
+                     kw = 11
+                  elseif(ecsn.eq.0.d0.and.mass.lt.1.6d0)then
+*
 * Zero-age Carbon/Oxygen White Dwarf
 *
                      mt = MAX(mc,(mc+0.31d0)/1.45d0)
                      kw = 11
+                  elseif(ecsn.gt.0.d0.and.mass.gt.ecsn_mlow.and.
+     &                   mass.le.ecsn.and.mc.le.1.08d0)then
+                     mt = MAX(mc,(mc+0.31d0)/1.45d0)
+                     kw = 11
                   else
-*     
+*
 * Zero-age Oxygen/Neon White Dwarf
 *
                      mt = mc
@@ -700,7 +876,13 @@
                   endif
                   mass = mt
                else
-                  if(mass.lt.1.6d0)then
+                  if(ecsn.gt.0.d0.and.mass.lt.ecsn_mlow)then
+                     kw = 15
+                     aj = 0.d0
+                     mt = 0.d0
+                     lum = 1.0d-10
+                     r = 1.0d-10
+                  elseif(ecsn.eq.0.d0.and.mass.lt.1.6d0)then
 *
 * Star is not massive enough to ignite C burning.
 * so no remnant is left after the SN
@@ -713,7 +895,7 @@
                   else
                      if(nsflag.eq.0)then
                         mt = 1.17d0 + 0.09d0*mc
-                     elseif(nsflag.ge.1)then
+                     elseif(nsflag.eq.1)then
                         if(mc.lt.2.5d0)then
                            mcx = 0.161767d0*mc + 1.067055d0
                         else
@@ -721,23 +903,289 @@
                         endif
                         if(mc.le.5.d0)then
                            mt = mcx
+                           fallback = 0.d0
                         elseif(mc.lt.7.6d0)then
                            mt = mcx + (mc - 5.d0)*(mt - mcx)/2.6d0
+                           fallback = (mc - 5.d0)/2.6d0
+                        endif
+                        if(mc.gt.7.60) fallback = 1.d0
+                     elseif(nsflag.eq.2)then
+*
+* Use NS/BH masses given by Belczynski+08. PK.
+*
+                     !First calculate the proto-core mass
+                     if(ecsn.gt.0.d0.and.mc.le.ecsn.and.
+     &                    mc.ge.ecsn_mlow)then
+                        mcx = 1.38d0
+                     elseif(mc.lt.4.82d0)then
+                        mcx = 1.5d0
+                     elseif(mc.ge.4.82d0.and.mc.lt.6.31d0)then
+                        mcx = 2.11d0
+                     elseif(mc.ge.6.31d0.and.mc.lt.6.75d0)then
+                        mcx = 0.69*mc - 2.26d0
+                     elseif(mc.ge.6.75d0)then
+                        mcx = 0.37*mc - 0.07d0
+                     endif
+                     !now calculate the remnant mass after fallback
+                     if(mc.le.5.d0)then
+                        mt = mcx
+                        fallback = 0.d0
+                     elseif(mc.lt.7.6d0)then
+                        mt = mcx + (0.378d0*mc - 1.889d0)*(mt - mcx)
+                        fallback = (0.378d0*mc - 1.889d0)
+                     elseif(mc.gt.7.60)then
+                        fallback = 1.d0
+                     endif
+                     ! if(bhspinflag.eq.0)then
+                     !        bhspin = bhspinmag
+                     ! elseif(bhspinflag.eq.1)then
+                     !        bhspin = ran3(idum1) * bhspinmag
+                     ! elseif(bhspinflag.eq.2)then
+                     !     if(mc.le.13.d0)then
+                     !         bhspin = 0.9d0
+                     !     elseif(mc.lt.27.d0)then
+                     !         bhspin = -0.064d0*mc + 1.736d0
+                     !     else
+                     !         bhspin = 0.0d0
+                     !     endif
+                     ! endif
+                     mc = mt
+                  elseif(nsflag.eq.3)then
+*
+* Use the "Rapid" SN Prescription (Fryer et al. 2012, APJ, 749,91)
+*
+*                    We use the updated proto-core mass from Giacobbo & Mapelli 2020
+                     mcx = 1.1d0
+                     if(ecsn.gt.0.d0.and.mc.le.ecsn.and.
+     &                    mc.ge.ecsn_mlow)then
+                        mt = 1.38d0   ! ECSN fixed mass, no fallback
+                     elseif(mc.le.2.5d0)then
+                        fallback = 0.2d0 / (mt - mcx)
+                        mt = mcx + 0.2d0
+                     elseif(mc.le.6.d0)then
+                        fallback = (0.286d0*mc - 0.514d0) / (mt - mcx)
+                        mt = mcx + 0.286d0*mc - 0.514d0
+                     elseif(mc.le.7.d0)then
+                        fallback = 1.d0
+                     elseif(mc.le.11.d0)then
+                        avar = 0.25d0 - (1.275 / (mt - mcx))
+                        bvar = 1.d0 - 11.d0*avar
+                        fallback = avar*mc + bvar
+                        mt = mcx + fallback*(mt - mcx)
+                     elseif(mc.gt.11.d0)then
+                        fallback = 1.d0
+                     endif
+                     ! if(bhspinflag.eq.0)then
+                     !        bhspin = bhspinmag
+                     ! elseif(bhspinflag.eq.1)then
+                     !        bhspin = ran3(idum1) * bhspinmag
+                     ! elseif(bhspinflag.eq.2)then
+                     !     if(mc.le.13.d0)then
+                     !         bhspin = 0.9d0
+                     !     elseif(mc.lt.27.d0)then
+                     !         bhspin = -0.064d0*mc + 1.736d0
+                     !     else
+                     !         bhspin = 0.0d0
+                     !     endif
+                     ! endif
+                     mc = mt
+                  elseif(nsflag.eq.4)then
+*
+* Use the "Delayed" SN Prescription (Fryer et al. 2012, APJ, 749,91)
+*
+*                    For this, we just set the proto-core mass to one
+                     if(mc.le.3.5d0)then
+                        mcx = 1.2d0
+                     elseif(mc.le.6.d0)then
+                        mcx = 1.3d0
+                     elseif(mc.le.11.d0)then
+                        mcx = 1.4d0
+                     elseif(mc.gt.11.d0)then
+                        mcx = 1.6d0
+                     endif
+
+                     if(ecsn.gt.0.d0.and.mc.le.ecsn.and.
+     &                    mc.ge.ecsn_mlow)then
+                        mt = 1.38d0   ! ECSN fixed mass, no fallback
+                     elseif(mc.lt.2.5d0)then
+                        fallback = 0.2d0 / (mt - mcx)
+                        mt = mcx + 0.2
+                     elseif(mc.lt.3.5d0)then
+                        fallback = (0.5d0 * mc - 1.05d0) / (mt - mcx)
+                        mt = mcx + 0.5d0 * mc - 1.05d0
+                     elseif(mc.lt.11.d0)then
+                        avar = 0.133d0 - (0.093d0 / (mt - mcx))
+                        bvar = 1.d0 - 11.d0*avar
+                        fallback = avar*mc + bvar
+                        mt = mcx + fallback*(mt - mcx)
+                     elseif(mc.ge.11.d0)then
+                        fallback = 1.d0
+                     endif
+                     ! if(bhspinflag.eq.0)then
+                     !        bhspin = bhspinmag
+                     ! elseif(bhspinflag.eq.1)then
+                     !        bhspin = ran3(idum1) * bhspinmag
+                     ! elseif(bhspinflag.eq.2)then
+                     !     if(mc.le.13.d0)then
+                     !         bhspin = 0.9d0
+                     !     elseif(mc.lt.27.d0)then
+                     !         bhspin = -0.064d0*mc + 1.736d0
+                     !     else
+                     !         bhspin = 0.0d0
+                     !     endif
+                     ! endif
+                     mc = mt
+                  endif
+
+* Specify the baryonic to gravitational remnant mass prescription
+* MJZ 04/2020
+
+* Determine gravitational mass using Lattimer & Yahil 1989 for nsflag>1
+                  if(nsflag.le.1)then
+                     mrem = mt
+                  else
+                     mrem = 6.6666667d0*(SQRT(1.d0+0.3d0*mt)-1.d0)
+* If rembar_massloss >= 0, limit the massloss by rembar_massloss
+                     if(rembar_massloss.ge.0d0)then
+                        if((mt-mrem).ge.rembar_massloss) 
+     &                               mrem = mt-rembar_massloss
+                     endif
+                  endif
+
+* Determine whether a zero-age NS or BH is formed
+                  if(mrem.le.mxns)then
+                     mt = mrem
+                     kw = 13
+                  else
+                     kw = 14
+
+* CLR - (Pulsational) Pair-Instability Supernova
+
+* Belczynski+2016 prescription: just shrink any BH with a He core mass
+* between 45 and 65 solar masses, and blow up anything between 65 and
+* 135 solar masses.  Cheap, but effective
+                     if(pisn.gt.0)then
+                        if(mc.ge.pisn.and.mc.lt.65.d0)then
+                           mt = pisn
+                           mc = pisn
+                           !pisn_track(kidx)=6
+                        elseif(mc.ge.65.d0.and.mc.lt.135.d0)then
+                           mt = 0.d0
+                           mc = 0.d0
+                           kw = 15
+                           !pisn_track(kidx)=7
+                        endif
+* The Spera+Mapelli2017 prescription is a tad more sophisticated:
+* complex fitting formula to Stan Woosley's PSN models.  HOWEVER, these
+* were done using the ZAMS mass/core mass/remnant mass relationships for
+* SEVN, not BSE.  In other words, I woud be careful using this (and in
+* practice, it doesn't vary that much from Belczynski's prescription,
+* since the He core masses are the same in both)
+* Mario said this prescription works here as well.
+                     elseif(pisn.eq.-1)then
+                        frac = mc/mt
+                        kappa = 0.67d0*frac + 0.1d0
+                        sappa = 0.5226d0*frac - 0.52974d0
+                        if(mc.le.32.d0)then
+                           alphap = 1.0d0
+                           !!pisn_track(kidx)=6
+                        elseif(frac.lt.0.9d0.and.mc.le.37.d0)then
+                           alphap = 0.2d0*(kappa-1.d0)*mc +
+     &                              0.2d0*(37.d0 - 32.d0*kappa)
+                           !pisn_track(kidx)=6
+                        elseif(frac.lt.0.9d0.and.mc.le.60.d0)then
+                           alphap = kappa
+                           !pisn_track(kidx)=6
+                        elseif(frac.lt.0.9d0.and.mc.lt.64.d0)then
+                           alphap = kappa*(-0.25d0)*mc+ kappa*16.d0
+                           !pisn_track(kidx)=6
+                        elseif(frac.ge.0.9d0.and.mc.le.37.d0)then
+                           alphap = sappa*(mc- 32.d0) + 1.d0
+                           !pisn_track(kidx)=6
+                        elseif(frac.ge.0.9d0.and.mc.le.56.d0.and.
+     &                         sappa.lt.-0.034168d0)then
+                           alphap = 5.d0*sappa + 1.d0
+                           !pisn_track(kidx)=6
+                        elseif(frac.ge.0.9d0.and.mc.le.56.d0.and.
+     &                         sappa.ge.-0.034168d0)then
+                           alphap = (-0.1381d0*frac + 0.1309d0)*
+     &                              (mc- 56.d0) + 0.82916d0
+                           !pisn_track(kidx)=6
+                        elseif(frac.ge.0.9d0.and.mc.lt.64.d0)then
+                           alphap = -0.103645d0*mc+ 6.63328d0
+                           !pisn_track(kidx)=6
+                        elseif(mc.ge.64.d0.and.mc.lt.135.d0)then
+                           alphap = 0.d0
+                           kw = 15
+                           !pisn_track(kidx)=7
+                        elseif(mc.ge.135.d0)then
+                           alphap = 1.0d0
+                        endif
+                        mt = alphap*mt
+
+
+* Fit (8th order polynomial) to Table 1 in Marchant+2018.
+                     elseif(pisn.eq.-2)then
+                        if(mc.ge.31.99d0.and.mc.le.61.10d0)then
+                           polyfit = -6.29429263d5
+     &                            + 1.15957797d5*mc
+     &                            - 9.28332577d3*mc**2d0
+     &                            + 4.21856189d2*mc**3d0
+     &                            - 1.19019565d1*mc**4d0
+     &                            + 2.13499267d-1*mc**5d0
+     &                            - 2.37814255d-3*mc**6d0
+     &                            + 1.50408118d-5*mc**7d0
+     &                            - 4.13587235d-8*mc**8d0
+                           mt = polyfit
+                           !pisn_track(kidx)=6
+                        elseif(mc.gt.61.10d0.and.
+     &                         mc.lt.124.12d0)then
+                           mt = 0.d0
+                           kw = 15
+                           !pisn_track(kidx)=7
+                        endif
+
+* Fit (8th order polynomial) to Table 5 in Woosley2019.
+                     elseif(pisn.eq.-3)then
+                        if(mc.ge.29.53d0.and.mc.le.60.12d0)then
+                           polyfit = -3.14610870d5
+     &                            + 6.13699616d4*mc
+     &                            - 5.19249710d3*mc**2d0
+     &                            + 2.48914888d2*mc**3d0
+     &                            - 7.39487537d0*mc**4d0
+     &                            + 1.39439936d-1*mc**5d0
+     &                            - 1.63012111d-3*mc**6d0
+     &                            + 1.08052344d-5*mc**7d0
+     &                            - 3.11019088d-8*mc**8d0
+                           mt = polyfit
+                           !pisn_track(kidx)=6
+                        elseif(mc.gt.60.12d0.and.mc.lt.135.d0)then
+                           mt = 0.d0
+                           kw = 15
+                           !pisn_track(kidx)=7
                         endif
                      endif
-                     mc = mt
-                     if(mt.le.mxns)then
-*
-* Zero-age Neutron star
-*
-                        kw = 13
+
+* MJZ 04/2020
+* Convert baryonic mass to gravitational mass 
+                     if(nsflag.le.1)then
+                        mrem = mt
                      else
-*
-* Zero-age Black hole
-*
-                        kw = 14
+* If rembar_massloss >= 0, limit the massloss by rembar_massloss
+                        if(rembar_massloss.ge.0d0)then
+                           mrem = mt-rembar_massloss
+* If -1 < rembar_massloss < 0, assume this fractional mass loss
+                        else
+                           mrem = (1.d0+rembar_massloss)*mt
+                        endif
                      endif
-                  endif  
+                     mt = mrem
+* Store the initial BH mass for calculating the ISCO later
+                     if(Mbh_initial.eq.0)then
+                        Mbh_initial = mt
+                     endif
+                     endif
+                  endif
                endif
             endif
          endif
@@ -748,16 +1196,22 @@
 *        White dwarf.
 *
          mc = mt
+         mchold = mch
+         if(ecsn.gt.0.d0.and.kw.eq.12) mch = 1.38d0
          if(mc.ge.mch)then
 *
 * Accretion induced supernova with no remnant
-* unless WD is ONe in which case we assume a NS 
-* of minimum mass is the remnant. 
+* unless WD is ONe in which case we assume a NS
+* of minimum mass is the remnant.
 *
             if(kw.eq.12)then
                kw = 13
                aj = 0.d0
                mt = 1.3d0
+               if(ecsn.gt.0.d0)then
+                  mt = 1.38d0
+                  mt = 0.9d0*mt !in ST this is a quadratic, will add in later.
+               endif
             else
                kw = 15
                aj = 0.d0
@@ -799,6 +1253,7 @@
             if(mt.lt.0.000005d0) r = 0.009d0
 *
          endif
+         mch = mchold !added for AIC ECSN stuff.
       endif
 *
       if(kw.eq.13)then
@@ -823,6 +1278,10 @@
 *        Black hole
 *
          mc = mt
+* Store the initial BH mass for calculating the ISCO later
+         if(Mbh_initial.eq.0)then
+            Mbh_initial = mt
+         endif
          lum = 1.0d-10
          r = 4.24d-06*mt
       endif
@@ -911,15 +1370,25 @@
      &              lums(4),rzams,rtms,rg,menv,renv,k2)
       endif
 *
-      if(mass.gt.99.99d0)then
-         mass = mass0
-      endif
-      if(mt.gt.99.99d0)then
-         mt = mt0
+      if(ST_tide.gt.0)then
+         if(kw.le.2.or.kw.eq.7.or.kw.ge.10)then
+            if(mt.le.1.d0)then
+               k2 = 0.205d0
+            else
+               k2 = 0.075d0
+            endif
+         else
+           k2 = 0.1d0
+         endif
       endif
 *
-
-
+C      if(mass.gt.99.99d0)then
+C         mass = mass0
+C      endif
+C      if(mt.gt.99.99d0)then
+C         mt = mt0
+C      endif
+*
       return
       end
 ***

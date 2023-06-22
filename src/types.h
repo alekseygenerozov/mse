@@ -559,6 +559,10 @@ inline void transform_alpha_beta_to_u_u_star(double alpha[4], double beta[4], do
 #define SSE_BH 14
 #define SSE_MASSLESS_REMNANT 15
 
+struct snvars__{
+        double ecsn, ecsn_mlow, pisn, rembar_massloss;
+};
+
 struct value1__ 
 {
         double neta,bwind,hewind,mxns;
@@ -588,7 +592,7 @@ struct value5__
 
 struct flags__ 
 {
-        int ceflag,tflag,ifflag,nsflag,wdflag,eddlimflag;
+        int ceflag,tflag,ifflag,nsflag,wdflag,eddlimflag,ST_tide;
 };
 
 struct points__ 
