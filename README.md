@@ -11,7 +11,6 @@ The script `test_mse.py` can be used to test the installation. The script `run_s
 #Updates to stellar evolution routines src/sse/evolv1.f
 
 1. mlwind.f has been replaced with the Cosmic version.
-2. hrdiag.f has been replaced with the Cosmic version, with some minor adjustments: (i) remnantflag is replaced with nsflag (ii) code related to bh spin and pisn tracking is commented out
-3. evolv1.f: tweaks to check with radial conversion.
-
+2. hrdiag.f has been replaced with the Cosmic version, with some minor adjustments: (i) remnantflag is replaced with nsflag (ii) code related to bh spin and pisn tracking is commented out.
+   *hardcoded pisn = 45 and rembar_massloss = 0.5
 
