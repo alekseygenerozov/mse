@@ -137,7 +137,7 @@ int initialize_stars(ParticlesMap *particlesMap)
                     #endif
 
                     evolv1_(&kw,&sse_initial_mass,&mt,&r,&lum,&mc,&rc,&menv,&renv,&ospin,&epoch,&tms,&tphys,&tphysf,&dtp,&z,zpars,&k2);
-                    // check_sse_error_codes();
+                    check_sse_error_codes();
                     age = tphysf - epoch;
 
                     dt = get_new_dt_sse(kw,sse_initial_mass,mt,age,dt,zpars);
@@ -369,7 +369,7 @@ int evolve_stars(ParticlesMap *particlesMap, double start_time, double end_time,
             else
             {
                 evolv1_(&kw,&sse_initial_mass,&mt,&r,&lum,&mc,&rc,&menv,&renv,&ospin,&epoch,&tms,&tphys,&tphysf,&dtp,&z,zpars,&k2);
-                // check_sse_error_codes();
+                check_sse_error_codes();
 
                 if ( fabs(tphysf - desired_tphysf)/desired_tphysf > epsilon)
                 {
@@ -415,8 +415,9 @@ int evolve_stars(ParticlesMap *particlesMap, double start_time, double end_time,
                     }
 
                     update_other_quantities_immediately = false;
-                    p->age_dot = Myr_to_yr * (age - age_old) * one_div_dt;
-                    // p->epoch_dot = Myr_to_yr * (epoch - epoch_old)*one_div_dt;
+
+                    p->age_dot = Myr_to_yr * (age - age_old)*one_div_dt;
+                    //p->epoch_dot = Myr_to_yr * (epoch - epoch_old)*one_div_dt;
                     p->sse_initial_mass_dot = (sse_initial_mass - sse_initial_mass_old)*one_div_dt;
                     p->core_mass_dot = (mc - p->core_mass_old)*one_div_dt;
                     p->core_radius_dot = CONST_R_SUN*(rc - rc_old)*one_div_dt;
@@ -786,20 +787,12 @@ double get_new_dt_sse(int kw, double mass, double mt, double age, double dt, dou
     dtm = CV_max(dtm,1.0e-07*age);
 
     dtm = CV_max(dtm,1.0e-6);
-
-    #ifdef VERBOSE
-    if (verbose_flag > 3)
-    {
-        printf("stellar_evolution.cpp -- get_new_dt_sse -- %g %g %g\n", dt, dtr, dtm);
-    }
-    #endif
-
+    
     delete[] GB;
     delete[] tscls;
     delete[] lums;
     
     return dtm;
-    // return 1e-4;
 }
 
 

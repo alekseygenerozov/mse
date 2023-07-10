@@ -2520,7 +2520,7 @@ class Tools(object):
                 
                 ### check for errors/wall time ###
                 error_code = code.error_code
-                if error_code not in [0,1,35,36]:
+                if error_code not in [0,35,36]:
                     print("="*50)
                     print("WARNING -- mse.py -- Internal error with code ",error_code,"occurred -- -- stopping the simulation but saving data/making plots if specified in command line arguments.")
                     print("="*50)
@@ -2694,23 +2694,23 @@ class Tools(object):
                 color,s,description = Tools.get_color_and_size_and_description_for_star(k,1.0)
                 legend_elements.append( lines.Line2D([0],[0], marker = 'o', markerfacecolor = color, color = 'w', markersize = 10 ,label="$\mathrm{%s}$"%description))
 
-            # for index_log,log in enumerate(plot_log):
-            #     plot=fig.add_subplot(N_r,N_c,index_log+1)
-            #     particles = log["particles"]
-            #     event_flag = log["event_flag"]
-            #     index1 = log["index1"]
-            #     index2 = log["index2"]
+            for index_log,log in enumerate(plot_log):
+                plot=fig.add_subplot(N_r,N_c,index_log+1)
+                particles = log["particles"]
+                event_flag = log["event_flag"]
+                index1 = log["index1"]
+                index2 = log["index2"]
 
-            #     Tools.generate_mobile_diagram(particles,plot,fontsize=fontsize,index1=index1,index2=index2,event_flag=event_flag)
+                Tools.generate_mobile_diagram(particles,plot,fontsize=fontsize,index1=index1,index2=index2,event_flag=event_flag)
 
-            #     text = Tools.get_description_for_event_flag(event_flag,log["SNe_type"])
-            #     plot.set_title(text,fontsize=fontsize)
-            #     plot.annotate("$t\simeq %s\,\mathrm{Myr}$"%round(log["time"]*1e-6,2),xy=(0.1,0.9),xycoords='axes fraction',fontsize=fontsize)
+                text = Tools.get_description_for_event_flag(event_flag,log["SNe_type"])
+                plot.set_title(text,fontsize=fontsize)
+                plot.annotate("$t\simeq %s\,\mathrm{Myr}$"%round(log["time"]*1e-6,2),xy=(0.1,0.9),xycoords='axes fraction',fontsize=fontsize)
 
-            #     if index_log == 0:
-            #         plot.legend(handles = legend_elements, bbox_to_anchor = (-0.05, 1.50), loc = 'upper left', ncol = 5,fontsize=0.85*fontsize)
+                if index_log == 0:
+                    plot.legend(handles = legend_elements, bbox_to_anchor = (-0.05, 1.50), loc = 'upper left', ncol = 5,fontsize=0.85*fontsize)
                 
-            # fig.savefig(plot_filename + "_mobile.pdf")
+            fig.savefig(plot_filename + "_mobile.pdf")
         
             fig=pyplot.figure(figsize=(8,10))
             Np=4

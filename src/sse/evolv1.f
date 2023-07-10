@@ -314,7 +314,7 @@ c-------------------------------------------------------------c
             CALL hrdiag(mass,aj,mt,tm,tn,tscls,lums,GB,zpars,
      &                  r1,lum1,kw,mc1,rc1,menv1,renv1,k21)
             dr = r1 - rm0
-            if(ABS(dr).gt.0.1d0*rm0.and.kw.ne.14)then
+            if(ABS(dr).gt.0.1d0*rm0)then
                dtm = dtr - ajhold*eps
                dtdr = dtm/ABS(dr)
                dtm = alpha2*MAX(r1,rm0)*dtdr
@@ -346,7 +346,7 @@ c-------------------------------------------------------------c
 *            CALL exit(0)
 *            STOP 
          endif
-         if(ABS(dr).gt.0.1d0*rm0.and.kw.ne.14)then
+         if(ABS(dr).gt.0.1d0*rm0)then
             dtdr = dtm/ABS(dr)
             dtm = alpha2*MAX(rm0,r1)*dtdr
             if(it.ge.20) dtm = 0.5d0*dtm
@@ -381,8 +381,8 @@ c-------------------------------------------------------------c
       if(ip.ge.nv)then
          WRITE(99,*)' EVOLV1 ARRAY ERROR ',mass
          WRITE(*,*)' STOP: EVOLV1 ARRAY ERROR '
-         ! sse_error_code = 41
-         ! RETURN
+         sse_error_code = 41
+         RETURN
 
 *         CALL exit(0)
 *         STOP
