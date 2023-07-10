@@ -38,7 +38,7 @@ c-------------------------------------------------------------c
       integer kw,it,ip,jp,j,kwold,rflag
       integer nv,sse_error_code
       COMMON /SSE_ERROR_OUTPUT/ sse_error_code
-      parameter(nv=1000000)
+      parameter(nv=50000)
 *
       real*8 mass,z,aj
       real*8 epoch,tphys,tphys2,tmold,tbgold
@@ -381,8 +381,8 @@ c-------------------------------------------------------------c
       if(ip.ge.nv)then
          WRITE(99,*)' EVOLV1 ARRAY ERROR ',mass
          WRITE(*,*)' STOP: EVOLV1 ARRAY ERROR '
-         sse_error_code = 41
-         RETURN
+         ! sse_error_code = 41
+         ! RETURN
 
 *         CALL exit(0)
 *         STOP

@@ -131,7 +131,7 @@ c-------------------------------------------------------------c
 * store data only at the start and end while a value of dtp greater than 
 * tphysf will mean that no data is stored.
 *
-      dtp = 0.d0
+      dtp = 0.01d0
 * 
       CALL evolv1(kw,mass,mt,r,lum,mc,rc,menv,renv,ospin,
      &            epoch,tms,tphys,tphysf,dtp,z,zpars,k2)
