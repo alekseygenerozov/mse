@@ -560,7 +560,7 @@ inline void transform_alpha_beta_to_u_u_star(double alpha[4], double beta[4], do
 #define SSE_MASSLESS_REMNANT 15
 
 struct snvars__{
-        double ecsn, ecsn_mlow, pisn, rembar_massloss;
+        double ecsn, ecsn_mlow, rembar_massloss, pisn;
 };
 
 struct value1__ 

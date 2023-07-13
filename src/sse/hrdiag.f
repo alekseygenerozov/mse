@@ -80,8 +80,6 @@
 *
 * Make evolutionary changes to stars that have not reached KW > 5.
 *
-      pisn = 45
-      rembar_massloss = 0.5
       Mbh_initial = 0.
       mch = 1.44d0 !set here owing to AIC ECSN model.
 *
