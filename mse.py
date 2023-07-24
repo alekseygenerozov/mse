@@ -2799,9 +2799,9 @@ class Tools(object):
             
             if show_plots == True:
                 pyplot.show()
-            fig.close()
-            fig_pos.close()
-            fig_HRD.close()
+            pyplot.close(fig)
+            pyplot.close(fig_pos)
+            pyplot.close(fig_HRD)
       
         return error_code_copy, log_copy
 
