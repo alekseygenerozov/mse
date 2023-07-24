@@ -2711,6 +2711,7 @@ class Tools(object):
                     plot.legend(handles = legend_elements, bbox_to_anchor = (-0.05, 1.50), loc = 'upper left', ncol = 5,fontsize=0.85*fontsize)
                 
             fig.savefig(plot_filename + "_mobile.pdf")
+            plt.close(fig)
         
             fig=pyplot.figure(figsize=(8,10))
             Np=4
