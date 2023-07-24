@@ -2609,7 +2609,7 @@ class Tools(object):
             for i_status in range(N_status):
                 t_print[i_status] = np.array(t_print[i_status])
 
-            print("Final properties -- ","masses/MSun",[m_print[-1][i][-1] for i in range(N_bodies)],"smas/au",[a_print[-1][i][-1] for i in range(N_orbits)],"es",[e_print[-1][i][-1] for i in range(N_orbits)])
+            # print("Final properties -- ","masses/MSun",[m_print[-1][i][-1] for i in range(N_bodies)],"smas/au",[a_print[-1][i][-1] for i in range(N_orbits)],"es",[e_print[-1][i][-1] for i in range(N_orbits)])
 
             if verbose_flag > 0:
                 print("Number of log entries:",len(code.log))

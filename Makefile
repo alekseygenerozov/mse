@@ -64,18 +64,17 @@ FHEADERS = src/sse/const_bse.h src/sse/zdata.h
 ###################################################################
 
 ### Default flags with optimisation and no debugging support
-# CPPFLAGS = -fPIC -shared -O2 -lgfortran -Wno-comment -Wno-c++11-compat-deprecated-writable-strings -Wno-write-strings
-#CPPFLAGS = -fPIC -shared -g -lgfortran -Wno-comment 
+CPPFLAGS = -fPIC -shared -O2 -lgfortran -Wno-comment -Wno-c++11-compat-deprecated-writable-strings -Wno-write-strings
 
 ### Optional flags without optimisation and debugging support (significantly slower)
-CPPFLAGS = -fPIC -shared -lgfortran -Wno-comment -Wno-c++11-compat-deprecated-writable-strings -Wno-write-strings -g
+#CPPFLAGS = -fPIC -shared -lgfortran -Wno-comment -Wno-c++11-compat-deprecated-writable-strings -Wno-write-strings -g
 
 
 ############################################
 ### Do not change any of the lines below ###
 ############################################
 
-FFLAGS = -fPIC -g
+FFLAGS = -fPIC 
 
 all: $(COBJ) libmse.so
 
