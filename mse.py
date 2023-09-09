@@ -2378,7 +2378,8 @@ class Tools(object):
                         flybys_include_secular_encounters=False,include_flybys=True,save_data=False,plot_only=False,wall_time_max_s=3.6e4,\
                             common_envelope_timescale=1.0e3,binary_evolution_SNe_Ia_single_degenerate_model=0,\
                                 binary_evolution_SNe_Ia_double_degenerate_model=0,effective_radius_multiplication_factor_for_collisions_compact_objects=1.0e2,\
-                                    effective_radius_multiplication_factor_for_collisions_stars=1.0,tides_viscous_time_scale_prescription=1):
+                                    effective_radius_multiplication_factor_for_collisions_stars=1.0,tides_viscous_time_scale_prescription=1, 
+                                    kick_distribution=1, common_envelope_alpha=1.0, triple_common_envelope_alpha=1.0):
 
         np.random.seed(random_seed)
         
@@ -2446,6 +2447,9 @@ class Tools(object):
 
             for b in bodies:
                 b.include_WD_kicks = include_WD_kicks
+                b.kick_distribution = kick_distribution
+                b.common_envelope_alpha = common_envelope_alpha
+                b.triple_common_envelope_alpha = triple_common_envelope_alpha
                 b.kick_distribution_sigma_km_s_WD = kick_distribution_sigma_km_s_WD
                 b.kick_distribution_sigma_km_s_NS = kick_distribution_sigma_km_s_NS
                 b.kick_distribution_sigma_km_s_BH = kick_distribution_sigma_km_s_BH
