@@ -341,6 +341,7 @@ int evolve_stars(ParticlesMap *particlesMap, double start_time, double end_time,
             age = age_old = p->age*yr_to_Myr;
 
             p->core_mass_old = p->core_mass;
+            p->mass_old = p->mass;
 
             tphys = start_time*yr_to_Myr;
             tphysf = end_time*yr_to_Myr;

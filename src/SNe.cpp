@@ -177,7 +177,7 @@ int sample_kick_velocity(Particle *p, double *vx, double *vy, double *vz)
                 vnorm = vnorm_NS * m_NS/m_remnant;
             }
         }
-        
+
         if (kick_distribution == 3) // Fryer fallback prescription
         {
             double f_fallback;
@@ -188,23 +188,23 @@ int sample_kick_velocity(Particle *p, double *vx, double *vy, double *vz)
             }
             else if (CO_core_mass >= 5.0 and CO_core_mass < 7.6)
             {
-                f_fallback = 0.378*CO_core_mass - 1.889;
+                f_fallback = 0.378 * CO_core_mass - 1.889;
             }
             else
             {
                 f_fallback = 1.0;
             }
-            
-            #ifdef VERBOSE
+
+#ifdef VERBOSE
             if (verbose_flag > 1)
             {
-                printf("SNe.cpp -- sample_kick_velocity -- distr. 3 -- kw %d f_fallback %g\n",kw,f_fallback);
+                printf("SNe.cpp -- sample_kick_velocity -- distr. 3 -- kw %d f_fallback %g\n", kw, f_fallback);
             }
-            #endif
+#endif
 
             vnorm = vnorm_NS * (1.0 - f_fallback);
         }
-        
+
         if (kick_distribution == 4) // Giacobbo & Mapelli prescription
         {
             vnorm = vnorm_NS * (((m_progenitor - m_remnant)/m_remnant) * (p->kick_distribution_4_m_NS/p->kick_distribution_4_m_ej)); // <m_NS=1.2>; <m_ej>=9.0
@@ -247,30 +247,90 @@ int sample_kick_velocity(Particle *p, double *vx, double *vy, double *vz)
             vnorm = sample_from_normal_distribution(mu_kick,sigma_kick);
         }
     }
-    else
-    {
-        printf("SNe.cpp -- sample_kick_velocity -- ERROR: invalid kick distribution %d \n",kick_distribution);
-        //exit(-1);
-        error_code = 13;
-        longjmp(jump_buf,1);
-    }
+            
 
-    /* WD kicks */
-    if (p->include_WD_kicks == true and kw >= 10 and kw <= 12)
-    {
-        sigma = p->kick_distribution_sigma_km_s_WD * CONST_KM_PER_S;
-        sample_from_3d_maxwellian_distribution(sigma, v);
-        vnorm = norm3(v);
-    }
-    
-    /* ECSN kicks */
-    if (kw == 13 and p->apply_ECSN_kick == true)
-    {
-        sigma = p->kick_distribution_sigma_km_s_NS_ECSN * CONST_KM_PER_S;
-        sample_from_3d_maxwellian_distribution(sigma, v);
-        vnorm = norm3(v);
-        p->apply_ECSN_kick = false;
-    }
+        // Would be go to automatically pick this prescription if we pick nsflag 4
+        if (kick_distribution == 6) // Fryer delayed prescription
+        {
+            double m_fallback;
+            // Baryonic mass
+            double m_bar;
+            double delta;
+            double f_fallback;
+            double m_proto;
+
+            if (CO_core_mass < 3.5)
+            {
+                m_proto = 1.2;
+            }
+            else if (CO_core_mass < 6.0)
+            {
+                m_proto = 1.3;
+            }
+            else if (CO_core_mass < 11.0)
+            {
+                m_proto = 1.4;
+            }
+            else
+            {
+                m_proto = 1.6;
+            }
+
+            // Reverse engineeer the baryon mass
+            if (kw == 13)
+            {
+                m_bar = 0.075 * m_remnant * m_remnant + m_remnant;
+                delta = m_bar - m_remnant;
+                // HARDCODING REMBARMASSLOSS HERE--NOT GOOD
+                if (delta > 0.5)
+                {
+                    m_bar += 0.5;
+                }
+            }
+            // Not sure about this...
+            else if (kw == 14)
+            {
+                m_bar = m_remnant;
+            }
+
+            m_fallback = m_bar - m_proto;
+            f_fallback = m_fallback / (m_progenitor - m_proto);
+
+            #ifdef VERBOSE
+            if (verbose_flag > 1)
+            {
+                printf("SNe.cpp -- sample_kick_velocity -- distr. 3 -- kw %d f_fallback %g\n", kw, f_fallback);
+                printf("SNe.cpp -- m_bar %g m_proto %g m_progenitor %g m_remnant %g m_fallback %g\n", m_bar, m_proto, m_progenitor, m_remnant, m_fallback);
+            }
+            #endif
+
+            vnorm = vnorm_NS * (1.0 - f_fallback);
+        }
+
+        else
+        {
+            printf("SNe.cpp -- sample_kick_velocity -- ERROR: invalid kick distribution %d \n", kick_distribution);
+            // exit(-1);
+            error_code = 13;
+            longjmp(jump_buf, 1);
+        }
+
+        /* WD kicks */
+        if (p->include_WD_kicks == true and kw >= 10 and kw <= 12)
+        {
+            sigma = p->kick_distribution_sigma_km_s_WD * CONST_KM_PER_S;
+            sample_from_3d_maxwellian_distribution(sigma, v);
+            vnorm = norm3(v);
+        }
+
+        /* ECSN kicks */
+        if (kw == 13 and p->apply_ECSN_kick == true)
+        {
+            sigma = p->kick_distribution_sigma_km_s_NS_ECSN * CONST_KM_PER_S;
+            sample_from_3d_maxwellian_distribution(sigma, v);
+            vnorm = norm3(v);
+            p->apply_ECSN_kick = false;
+        }
 
     #ifdef LOGGING
     Log_type &last_entry = logData.back();

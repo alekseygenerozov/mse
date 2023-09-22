@@ -858,7 +858,7 @@ class Particle
     std::vector<int> connecting_child_in_parents;
     int level,highest_level;
     int is_binary;
-    double mass,child1_mass,child2_mass,total_system_mass;
+    double mass,mass_old,child1_mass,child2_mass,total_system_mass;
     double mu; /* reduced mass */
     int integration_method;
     
