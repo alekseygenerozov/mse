@@ -250,8 +250,11 @@ int sample_kick_velocity(Particle *p, double *vx, double *vy, double *vz)
             
 
         // Would be go to automatically pick this prescription if we pick nsflag 4
-        if (kick_distribution == 6) // Fryer delayed prescription
+        else if (kick_distribution == 6) // Fryer delayed prescription
         {
+            sigma = p->kick_distribution_sigma_km_s_NS * CONST_KM_PER_S;
+            sample_from_3d_maxwellian_distribution(sigma, v);
+            vnorm_NS = norm3(v);
             double m_fallback;
             // Baryonic mass
             double m_bar;
