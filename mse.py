@@ -2663,6 +2663,8 @@ class Tools(object):
 
                     with tarfile.TarFile(re.sub("[0-9]+$", "", plot_filename) + '_archive_tar_pickle', 'a') as tt:
                         tt.addfile(tarinfo, fileobj=fileobject1)
+                    fileobject1.seek(0)
+                    fileobject1.close()
                 except IOError:
                     print("Error saving output data to ",plot_filename + ".pkl; make sure the path exists and/or enough disk space is available.")
                     exit(0)
@@ -2734,6 +2736,8 @@ class Tools(object):
                 tt.addfile(tarinfo, fileobj=fileobject1)
     
             pyplot.close(fig)
+            fileobject1.seek(0)
+            fileobject1.close()
         
             fig=pyplot.figure(figsize=(8,10))
             Np=4
