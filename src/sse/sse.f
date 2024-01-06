@@ -161,7 +161,7 @@ c-------------------------------------------------------------c
       WRITE(23,99)(scm(j,k),k=1,8),scm(j,10),scm(j,12),scm(j,13)
       if(scm(j,1).ge.0.0) goto 30
       CLOSE(23)
- 99   FORMAT(8f10.4,1p,e12.4,0p,f12.4,1p,e12.4)
+ 99   FORMAT(8f12.4,1p,e12.4,0p,e12.4,1p,e12.4)
 *
 * The spp array acts as a log, storing the time and mass at each change
 * of evolution stage.

@@ -2547,7 +2547,7 @@ class Tools(object):
                 CVODE_flag = code.CVODE_flag
                 state = code.state
 
-                print( 't/Myr',t*1e-6,'masses/MSun',[b.mass for b in bodies],'smas/au',[o.a for o in orbits],'es',[o.e for o in orbits],'integration_flag',code.integration_flag)
+                #print( 't/Myr',t*1e-6,'masses/MSun',[b.mass for b in bodies],'smas/au',[o.a for o in orbits],'es',[o.e for o in orbits],'integration_flag',code.integration_flag)
                 
                 ### Custom output printing ###
 
