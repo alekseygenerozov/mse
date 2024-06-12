@@ -831,7 +831,7 @@ class MSE(object):
             entry = {}
             particles = []
             #N_particles = self.lib.get_number_of_particles()
-            
+
             time = ctypes.c_double(0.0)
             N_particles,event_flag,integration_flag,index1,index2,binary_index,kick_speed_km_s,SNe_type,SNe_info,eccentric_collision,eccentricity =\
              ctypes.c_int(0),ctypes.c_int(0),ctypes.c_int(0),ctypes.c_int(0),ctypes.c_int(0),ctypes.c_int(0),ctypes.c_double(0.0),ctypes.c_int(0),\
@@ -1933,9 +1933,11 @@ class Tools(object):
             for i in range(N_bodies-1):
                 arguments_of_pericentre.append(2.0*np.pi * np.random.random())
             print("mse.py -- arguments_of_pericentre not explicitly given -- setting initial arguments_of_pericentre to",arguments_of_pericentre)
-     
+
+
+
     @staticmethod       
-    def create_fully_nested_multiple(N,masses,semimajor_axes,eccentricities,inclinations,arguments_of_pericentre,longitudes_of_ascending_node,radii=None,metallicities=[],stellar_types=[],object_types=[]):
+    def create_fully_nested_multiple(N,masses,semimajor_axes,eccentricities,inclinations,arguments_of_pericentre,longitudes_of_ascending_node,radii=None,metallicities=None,stellar_types=None,object_types=None):
 
         """
         N is number of bodies
@@ -1946,8 +1948,13 @@ class Tools(object):
         N_bodies = N
         N_binaries = N-1
 
+        if object_types == None:
+            object_types = []
+        if stellar_types == None:
+            stellar_types = []
+        if metallicities == None:
+            metallicities = []
         Tools.check_for_default_values(N_bodies,metallicities,stellar_types,object_types,inclinations,longitudes_of_ascending_node,arguments_of_pericentre)
-
         particles = []
 
         for index in range(N_bodies):
@@ -1976,7 +1983,7 @@ class Tools(object):
         return particles
 
     @staticmethod
-    def create_2p2_quadruple_system(masses,semimajor_axes,eccentricities,inclinations,arguments_of_pericentre,longitudes_of_ascending_node,radii=None,metallicities=[],stellar_types=[],object_types=[]):
+    def create_2p2_quadruple_system(masses,semimajor_axes,eccentricities,inclinations,arguments_of_pericentre,longitudes_of_ascending_node,radii=None,metallicities=None,stellar_types=None,object_types=None):
         
         """
         Create a 2+2 quadruple system.
@@ -1987,6 +1994,12 @@ class Tools(object):
         N_bodies = 4
         N_binaries = N_bodies-1
 
+        if object_types == None:
+            object_types = []
+        if stellar_types == None:
+            stellar_types = []
+        if metallicities == None:
+            metallicities = []
         Tools.check_for_default_values(N_bodies,metallicities,stellar_types,object_types,inclinations,longitudes_of_ascending_node,arguments_of_pericentre)
 
         particles = []
@@ -2210,8 +2223,14 @@ class Tools(object):
             exit()
 
     @staticmethod
-    def create_hierarchy(N_bodies,configuration,masses,semimajor_axes,eccentricities,inclinations,arguments_of_pericentre,longitudes_of_ascending_node,radii=None,metallicities=[],stellar_types=[],object_types=[]):
+    def create_hierarchy(N_bodies,configuration,masses,semimajor_axes,eccentricities,inclinations,arguments_of_pericentre,longitudes_of_ascending_node,radii=None,metallicities=None,stellar_types=None,object_types=None):
 
+        if object_types == None:
+            object_types = []
+        if stellar_types == None:
+            stellar_types = []
+        if metallicities == None:
+            metallicities = []
         Tools.check_for_default_values(N_bodies,metallicities,stellar_types,object_types,inclinations,longitudes_of_ascending_node,arguments_of_pericentre)
 
         print("="*50)
@@ -2375,8 +2394,8 @@ class Tools(object):
                      
     @staticmethod
     def evolve_system(configuration,N_bodies,masses,metallicities,semimajor_axes,eccentricities,inclinations,arguments_of_pericentre,\
-        longitudes_of_ascending_node,tend,N_steps,stellar_types=[],make_plots=True,fancy_plots=False,plot_filename="test1",\
-            show_plots=True,object_types=[],random_seed=0,verbose_flag=0,include_WD_kicks=False,kick_distribution_sigma_km_s_WD=1.0,NS_model=0,ECSNe_model=0,\
+        longitudes_of_ascending_node,tend,N_steps,stellar_types=None,make_plots=True,fancy_plots=False,plot_filename="test1",\
+            show_plots=True,object_types=None,random_seed=0,verbose_flag=0,include_WD_kicks=False,kick_distribution_sigma_km_s_WD=1.0,NS_model=0,ECSNe_model=0,\
                 kick_distribution_sigma_km_s_NS=265.0,kick_distribution_sigma_km_s_BH=50.0,flybys_stellar_density_per_cubic_pc=0.1,\
                     flybys_encounter_sphere_radius_au=1.0e5,flybys_stellar_relative_velocity_dispersion_km_s=30.0,\
                         flybys_include_secular_encounters=False,include_flybys=True,save_data=False,plot_only=False,wall_time_max_s=3.6e4,\
