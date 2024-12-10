@@ -279,21 +279,12 @@ int sample_kick_velocity(Particle *p, double *vx, double *vy, double *vz)
                 m_proto = 1.6;
             }
 
-            // Reverse engineeer the baryon mass
-            if (kw == 13)
+            m_bar = 0.075 * m_remnant * m_remnant + m_remnant;
+            delta = m_bar - m_remnant;
+
+            if (delta > 0.5)
             {
-                m_bar = 0.075 * m_remnant * m_remnant + m_remnant;
-                delta = m_bar - m_remnant;
-                // HARDCODING REMBARMASSLOSS HERE--NOT GOOD
-                if (delta > 0.5)
-                {
-                    m_bar += 0.5;
-                }
-            }
-            // Not sure about this...
-            else if (kw == 14)
-            {
-                m_bar = m_remnant;
+                m_bar = m_remnant + 0.5;
             }
 
             m_fallback = m_bar - m_proto;
