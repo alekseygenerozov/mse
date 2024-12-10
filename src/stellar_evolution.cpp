@@ -36,7 +36,7 @@ int initialize_stars(ParticlesMap *particlesMap)
     value1_.neta = 0.5;
     value1_.bwind = 0.0;
     value1_.hewind = 0.5;
-    value1_.mxns = 3.0;
+    value1_.mxns = 2.0;
     value1_.windflag = 3;
     value2_.alpha1 = 1.0;
     value2_.lambda = 1.0;
@@ -52,7 +52,7 @@ int initialize_stars(ParticlesMap *particlesMap)
     flags_.ceflag = binary_evolution_CE_energy_flag;
     flags_.tflag = 1;
     flags_.ifflag = 0;
-    flags_.nsflag = 4;
+    flags_.nsflag = 5;
     flags_.wdflag = 1;
     flags_.eddlimflag = 0;
     flags_.ST_tide = 1;
@@ -279,7 +279,7 @@ int evolve_stars(ParticlesMap *particlesMap, double start_time, double end_time,
     value1_.neta = 0.5;
     value1_.bwind = 0.0;
     value1_.hewind = 0.5;
-    value1_.mxns = 3.0;
+    value1_.mxns = 2.0;
     value2_.alpha1 = 1.0;
     value2_.lambda = 1.0;
     value3_.idum = 0;
@@ -294,7 +294,7 @@ int evolve_stars(ParticlesMap *particlesMap, double start_time, double end_time,
     flags_.ceflag = binary_evolution_CE_energy_flag;
     flags_.tflag = 1;
     flags_.ifflag = 0;
-    flags_.nsflag = 4;
+    flags_.nsflag = 5;
     flags_.wdflag = 1;
     points_.pts1 = 0.05;
     points_.pts2 = 0.01;

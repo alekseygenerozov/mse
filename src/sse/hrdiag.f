@@ -1,6 +1,105 @@
+      module mass_remnant_mod
+      implicit none
+
+      ! Parameters
+      real(8), parameter :: m1 = 2.0, m2 = 3.0, m3 = 7.0, m4 = 8.0
+      real(8), parameter :: mu1 = 1.2, sig1 = 0.02
+      real(8), parameter :: mu2a = 1.4, mu2b = 0.5, sig2 = 0.05
+      real(8), parameter :: mu3a = 1.4, mu3b = 0.4, sig3 = 0.05
+      real(8), parameter :: mu_bh = 0.8, sig_bh = 0.5
+      real(8), parameter :: mmx_ns = 2.0, mmn_ns = 1.13, mmn_bh = 2.0
+
+      contains
+
+      function get_pbh(mc) result(pbh)
+         real(8), intent(in) :: mc
+         real(8) :: pbh
+
+         if (mc .LT. m1) then
+         pbh = 0.0
+         elseif (mc .LT. m3) then
+         pbh = (mc - m1) / (m3 - m1)
+         else
+         pbh = 1.0
+         end if
+      end function get_pbh
+
+      function get_mass_bh(mc, mcbagb) result(mass_bh)
+         real(8), intent(in) :: mc, mcbagb
+         real(8) :: mass_bh
+         real(8) :: pcf, rand_uniform, msamp
+
+         pcf = 1.0
+         if (mc .LT. m4) pcf = (mc - m1) / (m4 - m1)
+         call random_number(rand_uniform)
+
+         if (rand_uniform .LT. pcf) then
+         mass_bh = mcbagb
+         else
+         do
+            call normal_random(mu_bh * mc, sig_bh, msamp)
+            if (msamp .GT. mmn_bh) exit
+         end do
+         mass_bh = msamp
+         end if
+      end function get_mass_bh
+
+      function get_mass_ns(mc, mcbagb) result(mass_ns)
+         real(8), intent(in) :: mc, mcbagb
+         real(8) :: mass_ns
+         real(8) :: mu, sig, msamp
+
+         if (mc .LT. m1) then
+         mu = mu1
+         sig = sig1
+         elseif (mc .LT. m2) then
+         mu = mu2a + mu2b * (mc - m1) / (m2 - m1)
+         sig = sig2
+         else
+         mu = mu3a + mu3b * (mc - m2) / (m3 - m2)
+         sig = sig3
+         end if
+
+         do
+         call normal_random(mu, sig, msamp)
+         if (msamp .LE. mmx_ns .AND. msamp .GE. mmn_ns) exit
+         end do
+         mass_ns = msamp
+      end function get_mass_ns
+
+      function mrem_mandel(mc, mcbagb) result(mass_remnant)
+         real(8), intent(in) :: mc, mcbagb
+         real(8) :: mass_remnant
+         real(8) :: pbh, rand_uniform
+
+         pbh = get_pbh(mc)
+         call random_number(rand_uniform)
+
+         if (rand_uniform .LT. pbh) then
+         mass_remnant = get_mass_bh(mc, mcbagb)
+         else
+         mass_remnant = get_mass_ns(mc, mcbagb)
+         end if
+      end function mrem_mandel
+
+      subroutine normal_random(mean, stddev, result)
+         real(8), intent(in) :: mean, stddev
+         real(8), intent(out) :: result
+         real(8) :: u1, u2, z
+
+         call random_number(u1)
+         call random_number(u2)
+         z = sqrt(-2.0 * log(u1)) * cos(2.0 * 3.141592653589793 * u2)
+         result = mean + stddev * z
+      end subroutine normal_random
+
+      end module mass_remnant_mod
+
+
 ***
       SUBROUTINE hrdiag(mass,aj,mt,tm,tn,tscls,lums,GB,zpars,
      &                  r,lum,kw,mc,rc,menv,renv,k2)
+      use mass_remnant_mod
       IMPLICIT NONE
       INCLUDE 'const_bse.h'
 *
@@ -656,13 +755,16 @@ C      if(mt0.gt.100.d0) mt = 100.d0
                      !     endif
                      ! endif
                      mc = mt
+                  elseif(nsflag.eq.5)then
+                     mt = mrem_mandel(mc, mcbagb)
+                     mc = mt
                   endif
 
 * Specify the baryonic to gravitational remnant mass prescription
 * MJZ 04/2020
 
 * Determine gravitational mass using Lattimer & Yahil 1989 for nsflag>1
-                  if(nsflag.le.1)then
+                  if((nsflag.le.1) .OR. (nsflag.eq.5)) then
                      mrem = mt
                   else
                      mrem = 6.6666667d0*(SQRT(1.d0+0.3d0*mt)-1.d0)
